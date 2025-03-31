@@ -27,11 +27,7 @@
 class MelodyPlayer {
 public:
 #ifdef ESP32
-  /**
-   * pwmChannel is optional and you have to configure it only if you play will
-   * simultaneous melodies.
-   */
-  MelodyPlayer(unsigned char pin, unsigned char pwmChannel = 0, bool offLevel = HIGH);
+  MelodyPlayer(unsigned char pin, bool offLevel = HIGH);
 #else
   MelodyPlayer(unsigned char pin, bool offLevel = HIGH);
 #endif

@@ -40,14 +40,14 @@ void MelodyPlayer::play() {
                      + " duration:" + computedNote.duration);
     if (melodyState->isSilence()) {
 #ifdef ESP32
-      ledcWriteTone(pwmChannel, 0);
+      ledcWriteTone(pin, 0);
 #else
       noTone(pin);
 #endif
       delay(0.3f * computedNote.duration);
     } else {
 #ifdef ESP32
-      ledcWriteTone(pwmChannel, computedNote.frequency);
+      ledcWriteTone(pin, computedNote.frequency);
 #else
       tone(pin, computedNote.frequency);
 #endif
@@ -87,7 +87,7 @@ void changeTone(MelodyPlayer* player) {
 
     if (player->melodyState->isSilence()) {
 #ifdef ESP32
-      ledcWriteTone(player->pwmChannel, 0);
+      ledcWriteTone(player->pin, 0);
 #else
       tone(player->pin, 0);
 #endif
@@ -99,7 +99,7 @@ void changeTone(MelodyPlayer* player) {
 #endif
     } else {
 #ifdef ESP32
-      ledcWriteTone(player->pwmChannel, computedNote.frequency);
+      ledcWriteTone(player->pin, computedNote.frequency);
 #else
       tone(player->pin, computedNote.frequency);
 #endif
@@ -186,8 +186,8 @@ void MelodyPlayer::duplicateMelodyTo(MelodyPlayer& destPlayer) {
 }
 
 #ifdef ESP32
-MelodyPlayer::MelodyPlayer(unsigned char pin, unsigned char pwmChannel, bool offLevel)
-  : pin(pin), pwmChannel(pwmChannel), offLevel(offLevel), state(State::STOP), melodyState(nullptr) {
+MelodyPlayer::MelodyPlayer(unsigned char pin, bool offLevel)
+  : pin(pin), offLevel(offLevel), state(State::STOP), melodyState(nullptr) {
   pinMode(pin, OUTPUT);
   digitalWrite(pin, offLevel);
 };
@@ -209,16 +209,14 @@ void MelodyPlayer::turnOn() {
 #ifdef ESP32
   const int resolution = 8;
   // 2000 is a frequency, it will be changed at the first play
-  ledcSetup(pwmChannel, 2000, resolution);
-  ledcAttachPin(pin, pwmChannel);
-  ledcWrite(pwmChannel, 125);
+  ledcAttach(pin, 2000, resolution);
+  ledcWrite(pin, 125);
 #endif
 }
 
 void MelodyPlayer::turnOff() {
 #ifdef ESP32
-  ledcWrite(pwmChannel, 0);
-  ledcDetachPin(pin);
+  analogWrite(pin, 0);
 #else
   // Remember that this will set LOW output, it doesn't mean that buzzer is off (look at offLevel
   // for more info).

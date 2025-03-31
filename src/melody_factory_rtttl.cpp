@@ -126,54 +126,6 @@ Melody MelodyFactoryClass::loadRtttlFile(String filepath, FS& fs) {
   return Melody();
 }
 
-Melody MelodyFactoryClass::loadRtttlDB(String filepath, String title, FS& fs) {
-  File f = fs.open(filepath, "r");
-  f.setTimeout(0);
-
-  if (!f) {
-    if (debug) Serial.println("Opening file error");
-    return Melody();
-  }
-
-  if (title.length() == 0) {
-    if (debug) Serial.println("Title length = 0");
-    return Melody();
-  }
-
-  if (!f.find(title.c_str())) {
-    if (debug) Serial.println("Unable to find melody with title: " + String(title));
-    return Melody();
-  }
-  f.readStringUntil(':');
-
-  String values = f.readStringUntil(':');
-  values.trim();
-  if (debug) Serial.println(String("Default values:") + values);
-  if (values.length() == 0) { return Melody(); }
-
-  parseDefaultValues(values);
-
-  // 32 because it is the shortest note!
-  int timeUnit = 60 * 1000 * 4 / beat / 32;
-
-  size_t position = f.position();
-  int bytesUntilNewLine = f.readStringUntil('\n').length();
-  f.seek(position);
-
-  notes = std::make_shared<std::vector<NoteDuration>>();
-  bool result = true;
-  while (f.available() && notes->size() < maxLength && result && bytesUntilNewLine > 0) {
-    String s = f.readStringUntil(',');
-    if (s.length() > bytesUntilNewLine) { s = s.substring(0, bytesUntilNewLine); }
-    bytesUntilNewLine -= s.length() + 1;
-    s.trim();
-    result = parseRtttlNote(s);
-  }
-  if (result && notes->size() > 0) { return Melody(title, timeUnit, notes, false); }
-
-  return Melody();
-}
-
 Melody MelodyFactoryClass::loadRtttlString(const char rtttlMelody[]) {
   String title;
   int i = 0;
